@@ -7,8 +7,8 @@ A PowerShell utility for Internet Download Manager (IDM) registry management/
 - **Non-Persistent**: Optimized for memory execution (`iex`) to minimize disk footprint.
 - **Enterprise Ready**: Full error handling and support for x64/ARM64 architectures.
 
-## One-Liner Execution
-Execute the tool directly in an **Administrative PowerShell** session:
+## Execution
+Execute the tool directly in Windows Terminal / Powershell:
 
 ```powershell
 irm https://raw.githubusercontent.com/willtanoe/as-idm/main/as-idm.ps1 | iex
