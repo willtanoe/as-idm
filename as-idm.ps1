@@ -1,88 +1,70 @@
-# IDM Registry Management Tool (Reworked)
-# Researcher: Will (S2 Network Engineering & Cyber Security)
-# Technical Focus: Native ACL Manipulation & Memory-Only Execution
+<#
+    IDM PRO TOOL - Remote Exec Version
+    Author: Will @ Telkom University
+#>
 
-# Ensure Admin Privileges
-if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Warning "Elevation required. Relaunching as Administrator..."
-    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
-    exit
-}
+$ScriptBlock = {
+    # Function definitions inside the block
+    function Get-IDMRegistryPath {
+        $arch = (Get-CimInstance Win32_Processor).AddressWidth
+        return if ($arch -eq 64) { "Software\Classes\WOW6432Node\CLSID" } else { "Software\Classes\CLSID" }
+    }
 
-function Get-IDMRegistryPath {
-    $arch = (Get-CimInstance Win32_Processor).AddressWidth
-    return if ($arch -eq 64) { "Software\Classes\WOW6432Node\CLSID" } else { "Software\Classes\CLSID" }
-}
+    function Invoke-IDMCleanup {
+        param ([string]$Action)
+        $REG_PATH = Get-IDMRegistryPath
+        $USER_SID = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+        $Targets = @("HKCU:\$REG_PATH", "Registry::HKEY_USERS\$USER_SID\$REG_PATH")
 
-function Invoke-IDMAction {
-    param (
-        [Parameter(Mandatory=$true)]
-        [ValidateSet("Reset", "Freeze")]
-        $Mode
-    )
-
-    $targetPath = Get-IDMRegistryPath
-    $userSID = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
-    $rootPaths = @(
-        "HKCU:\$targetPath",
-        "Registry::HKEY_USERS\$userSID\$targetPath"
-    )
-
-    Write-Host ">>> Initializing $Mode sequence..." -ForegroundColor Cyan
-
-    foreach ($root in $rootPaths) {
-        if (-not (Test-Path $root)) { continue }
-
-        # Targeted Regex: Matches standard GUID format
-        $clsids = Get-ChildItem -Path $root | Where-Object {
-            $_.PSChildName -match '^\{[A-F0-9]{8}-([A-F0-9]{4}-){3}[A-F0-9]{12}\}$'
-        }
-
-        foreach ($item in $clsids) {
-            $val = Get-ItemProperty -Path $item.PSPath -Name "(default)" -ErrorAction SilentlyContinue
-            
-            # IDM Signature: Numeric values or Base64-like characters in default key
-            if ($val.'(default)' -match '^\d+$' -or $val.'(default)' -match '\+|==') {
-                try {
-                    if ($Mode -eq "Reset") {
-                        Remove-Item -Path $item.PSPath -Recurse -Force -ErrorAction Stop
-                        Write-Host "[-] Deleted: $($item.PSChildName)" -ForegroundColor Gray
-                    } 
-                    else {
-                        # Freeze Mode: Apply Deny ACL for persistence
-                        $acl = Get-Acl $item.PSPath
-                        $everyone = New-Object System.Security.Principal.NTAccount("Everyone")
-                        $rule = New-Object System.Security.AccessControl.RegistryAccessRule($everyone, "FullControl", "Deny")
-                        $acl.SetAccessRule($rule)
-                        Set-Acl $item.PSPath $acl
-                        Write-Host "[*] Locked: $($item.PSChildName)" -ForegroundColor Green
-                    }
-                } catch {
-                    Write-Host "[!] Access Denied: $($item.PSChildName)" -ForegroundColor Red
+        foreach ($Root in $Targets) {
+            if (-not (Test-Path $Root)) { continue }
+            $Keys = Get-Childitem $Root | Where-Object { $_.PSChildName -match '^\{[A-F0-9]{8}-([A-F0-9]{4}-){3}[A-F0-9]{12}\}$' }
+            foreach ($Key in $Keys) {
+                $DefaultVal = (Get-ItemProperty $Key.PSPath -Name "(default)" -ErrorAction SilentlyContinue)."(default)"
+                if ($DefaultVal -match '^\d+$' -or $DefaultVal -match '\+|==') {
+                    try {
+                        if ($Action -eq "Reset") { 
+                            Remove-Item $Key.PSPath -Recurse -Force -ErrorAction Stop
+                            Write-Host "[-] Purged: $($Key.PSChildName)" -ForegroundColor Gray 
+                        }
+                        elseif ($Action -eq "Freeze") {
+                            $Acl = Get-Acl $Key.PSPath
+                            $Rule = New-Object System.Security.AccessControl.RegistryAccessRule("Everyone", "FullControl", "Deny")
+                            $Acl.SetAccessRule($Rule)
+                            Set-Acl $Key.PSPath $Acl
+                            Write-Host "[*] Locked: $($Key.PSChildName)" -ForegroundColor Green
+                        }
+                    } catch { }
                 }
             }
         }
     }
+
+    # Internal Menu Logic
+    Clear-Host
+    Write-Host "==========================================" -ForegroundColor Magenta
+    Write-Host "    IDM PRO TOOL - REMOTE EDITION" -ForegroundColor Magenta
+    Write-Host "==========================================" -ForegroundColor Magenta
+    Write-Host "1. Freeze Trial (Stable)"
+    Write-Host "2. Reset Trial Data"
+    Write-Host "0. Exit"
+    
+    $Input = Read-Host "`nSelect Option"
+    switch ($Input) {
+        "1" { Invoke-IDMCleanup -Action "Freeze" }
+        "2" { Invoke-IDMCleanup -Action "Reset" }
+        "0" { exit }
+    }
+    Write-Host "`nDone. Press any key to exit..."
+    $null = [Console]::ReadKey()
 }
 
-# Terminal UI
-Clear-Host
-Write-Host "==========================================" -ForegroundColor Magenta
-Write-Host "   IDM RESEARCH TOOL - VERSION 2.0        " -ForegroundColor Magenta
-Write-Host "==========================================" -ForegroundColor Magenta
-Write-Host "1. Freeze Trial (Lifetime Mode)"
-Write-Host "2. Reset Trial Data"
-Write-Host "0. Exit"
-Write-Host "------------------------------------------"
-
-$choice = Read-Host "Select Option"
-
-switch ($choice) {
-    "1" { Invoke-IDMAction -Mode "Freeze" }
-    "2" { Invoke-IDMAction -Mode "Reset" }
-    "0" { exit }
-    default { Write-Warning "Invalid selection." }
+# Elevation Logic that works with IEX
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Warning "Elevating to Administrator..."
+    $RemoteCommand = "irm https://raw.githubusercontent.com/willtanoe/as-idm/main/as-idm.ps1 | iex"
+    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command $RemoteCommand" -Verb RunAs
+    exit
+} else {
+    & $ScriptBlock
 }
-
-Write-Host "`nOperation completed. Press any key to exit." -ForegroundColor Cyan
-$null = [Console]::ReadKey()
