@@ -1,6 +1,5 @@
 <#
     IDM PRO TOOL - Ultimate Robust Version
-    Author: Will @ Telkom University
 #>
 
 $ScriptBlock = {
