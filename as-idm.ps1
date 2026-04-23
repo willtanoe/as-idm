@@ -1,10 +1,8 @@
 <#
-    IDM PRO TOOL - Remote Exec Version
-    Author: Will @ Telkom University
+    IDM PRO TOOL - Robust Remote Version
 #>
 
 $ScriptBlock = {
-    # Function definitions inside the block
     function Get-IDMRegistryPath {
         $arch = (Get-CimInstance Win32_Processor).AddressWidth
         return if ($arch -eq 64) { "Software\Classes\WOW6432Node\CLSID" } else { "Software\Classes\CLSID" }
@@ -16,11 +14,12 @@ $ScriptBlock = {
         $USER_SID = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
         $Targets = @("HKCU:\$REG_PATH", "Registry::HKEY_USERS\$USER_SID\$REG_PATH")
 
+        Write-Host "`n[*] Starting $Action sequence..." -ForegroundColor Cyan
         foreach ($Root in $Targets) {
             if (-not (Test-Path $Root)) { continue }
-            $Keys = Get-Childitem $Root | Where-Object { $_.PSChildName -match '^\{[A-F0-9]{8}-([A-F0-9]{4}-){3}[A-F0-9]{12}\}$' }
+            $Keys = Get-Childitem $Root -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -match '^\{[A-F0-9]{8}-([A-F0-9]{4}-){3}[A-F0-9]{12}\}$' }
             foreach ($Key in $Keys) {
-                $DefaultVal = (Get-ItemProperty $Key.PSPath -Name "(default)" -ErrorAction SilentlyContinue)."(default)"
+                $DefaultVal = (Get-ItemProperty -Path $Key.PSPath -Name "(default)" -ErrorAction SilentlyContinue)."(default)"
                 if ($DefaultVal -match '^\d+$' -or $DefaultVal -match '\+|==') {
                     try {
                         if ($Action -eq "Reset") { 
@@ -40,10 +39,10 @@ $ScriptBlock = {
         }
     }
 
-    # Internal Menu Logic
     Clear-Host
     Write-Host "==========================================" -ForegroundColor Magenta
-    Write-Host "    IDM PRO TOOL - REMOTE EDITION" -ForegroundColor Magenta
+    Write-Host "    IDM PRO TOOL - STABLE REMOTE" -ForegroundColor Magenta
+    Write-Host "    Maintainer: Will (CyberSec Researcher)" -ForegroundColor Magenta
     Write-Host "==========================================" -ForegroundColor Magenta
     Write-Host "1. Freeze Trial (Stable)"
     Write-Host "2. Reset Trial Data"
@@ -55,15 +54,19 @@ $ScriptBlock = {
         "2" { Invoke-IDMCleanup -Action "Reset" }
         "0" { exit }
     }
-    Write-Host "`nDone. Press any key to exit..."
+    Write-Host "`n[+] Operation Finished." -ForegroundColor Cyan
+    Write-Host "Press any key to exit..."
     $null = [Console]::ReadKey()
 }
 
-# Elevation Logic that works with IEX
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Warning "Elevating to Administrator..."
-    $RemoteCommand = "irm https://raw.githubusercontent.com/willtanoe/as-idm/main/as-idm.ps1 | iex"
-    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command $RemoteCommand" -Verb RunAs
+    $Url = "https://raw.githubusercontent.com/willtanoe/as-idm/main/as-idm.ps1"
+    $Command = "iex (irm $Url)"
+    $Bytes = [System.Text.Encoding]::Unicode.GetBytes($Command)
+    $EncodedCommand = [Convert]::ToBase64String($Bytes)
+    
+    Write-Host "[!] Elevation required. Spawning Admin Shell..." -ForegroundColor Yellow
+    Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-EncodedCommand", $EncodedCommand -Verb RunAs
     exit
 } else {
     & $ScriptBlock
