@@ -3,7 +3,6 @@
 A high-precision PowerShell utility for Internet Download Manager (IDM) registry management, designed for network security researchers.
 
 ## Core Features
-- **Hybrid Support**: Includes both traditional Registration (Serial) and modern Freeze (ACL Lock) methods.
 - **Security-First**: Uses native PowerShell ACL providers instead of risky memory injections.
 - **Non-Persistent**: Optimized for memory execution (`iex`) to minimize disk footprint.
 - **Enterprise Ready**: Full error handling and support for x64/ARM64 architectures.
@@ -13,6 +12,7 @@ Execute the tool directly in an **Administrative PowerShell** session:
 
 ```powershell
 irm [https://raw.githubusercontent.com/willtanoe/as-idm/main/idm_tool.ps1](https://raw.githubusercontent.com/willtanoe/as-idm/main/idm_tool.ps1) | iex
+
 Methodology
 1. Freeze Trial (Recommended)
 This method identifies IDM's trial-tracking CLSIDs and applies a Deny Access Control Entry (ACE) for the Everyone identity. This effectively prevents IDM from writing the expiration date, locking the trial in a perpetual "Day 1" state.
