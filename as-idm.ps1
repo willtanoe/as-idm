@@ -50,8 +50,7 @@ $ScriptBlock = {
 
     Clear-Host
     Write-Host "==========================================" -ForegroundColor Magenta
-    Write-Host "    IDM PRO TOOL - ULTIMATE STABLE" -ForegroundColor Magenta
-    Write-Host "    Author: Will (Network Engineering)" -ForegroundColor Magenta
+    Write-Host "    ACT Script - IDM" -ForegroundColor Magenta
     Write-Host "==========================================" -ForegroundColor Magenta
     Write-Host "1. Freeze Trial (Lifetime Mode)"
     Write-Host "2. Reset Trial Data"
