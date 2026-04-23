@@ -12,6 +12,7 @@ Execute the tool directly in an **Administrative PowerShell** session:
 
 ```powershell
 irm [https://raw.githubusercontent.com/willtanoe/as-idm/main/idm_tool.ps1](https://raw.githubusercontent.com/willtanoe/as-idm/main/idm_tool.ps1) | iex
+```
 
 Methodology
 1. Freeze Trial (Recommended)
