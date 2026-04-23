@@ -1,32 +1,26 @@
-\# IDM Registry Management Tool
+# IDM Management Tool (Professional Edition)
 
+A high-precision PowerShell utility for Internet Download Manager (IDM) registry management, designed for network security researchers.
 
+## Core Features
+- **Hybrid Support**: Includes both traditional Registration (Serial) and modern Freeze (ACL Lock) methods.
+- **Security-First**: Uses native PowerShell ACL providers instead of risky memory injections.
+- **Non-Persistent**: Optimized for memory execution (`iex`) to minimize disk footprint.
+- **Enterprise Ready**: Full error handling and support for x64/ARM64 architectures.
 
-A precision PowerShell-based utility for managing Internet Download Manager (IDM) trial data. This tool focuses on native registry manipulation and is optimized for security researchers.
-
-
-
-\## Features
-
-\* \*\*Zero-Footprint\*\*: Optimized for in-memory execution via `iex`.
-
-\* \*\*CIM Optimization\*\*: Uses `Win32\_Processor` CIM instances for architecture detection.
-
-\* \*\*Granular ACL Control\*\*: Manipulates Access Control Lists (ACL) directly to "freeze" trial keys.
-
-\* \*\*Pure PowerShell\*\*: Replaces legacy hybrid Batch scripts for better auditability.
-
-
-
-\## Remote Execution (One-Liner)
-
-
-
-To run the script directly in memory without downloading a file, execute the following command in an \*\*Administrative PowerShell\*\* session:
-
-
+## One-Liner Execution
+Execute the tool directly in an **Administrative PowerShell** session:
 
 ```powershell
+irm [https://raw.githubusercontent.com/willtanoe/as-idm/main/idm_tool.ps1](https://raw.githubusercontent.com/willtanoe/as-idm/main/idm_tool.ps1) | iex
+Methodology
+1. Freeze Trial (Recommended)
+This method identifies IDM's trial-tracking CLSIDs and applies a Deny Access Control Entry (ACE) for the Everyone identity. This effectively prevents IDM from writing the expiration date, locking the trial in a perpetual "Day 1" state.
 
-irm \[https://raw.githubusercontent.com/YOUR\_USERNAME/YOUR\_REPO/main/idm\_rework.ps1](https://raw.githubusercontent.com/YOUR\_USERNAME/YOUR\_REPO/main/idm\_rework.ps1) | iex
+2. Reset Mode
+Completely purges identified IDM artifacts from the Windows Registry, useful for troubleshooting or re-installations.
 
+3. Activation Mode
+Applies a custom license name and serial number. Note that modern IDM versions may detect this via server-side validation.
+
+Disclaimer: This tool is for educational purposes only. Maintainer is not responsible for any legal misuse.
