@@ -25,3 +25,21 @@ Completely purges identified IDM artifacts from the Windows Registry, useful for
 Applies a custom license name and serial number. Note that modern IDM versions may detect this via server-side validation.
 
 Disclaimer: This tool is for educational purposes only. Maintainer is not responsible for any legal misuse.
+
+## Credits & Acknowledgments
+
+This project is a **Full PowerShell Rework** of the original [IDM Activation Script (IAS)](https://github.com/WindowsAddict/IDM-Activation-Script) by **WindowsAddict**. 
+
+While the original implementation relied heavily on Windows Batch (.cmd), this version has been completely rewritten into native PowerShell (.ps1) to ensure better performance, cleaner logic, and modern system compatibility for security research purposes.
+
+### The Researchers Behind the Logic:
+
+| Contributor | Contribution & Reference |
+| :--- | :--- |
+| **Dukun Cabul** | The original researcher who discovered the [IDM trial reset and activation bypass](https://nsaneforums.com/topic/371047-discussion-internet-download-manager-fixes/page/8/#comment-1632062). |
+| **AveYo (BAU)** | Author of the legendary [reg_own](https://pastebin.com/XTPt0JSC) snippet for lean registry ownership manipulation. |
+| **abbodi1406** | Massive technical contributions and optimizations to the global [activation research](https://github.com/abbodi1406). |
+| **WindowsAddict** | Creator of the original [IAS repository](https://github.com/WindowsAddict/IDM-Activation-Script) and community maintainer. |
+
+---
+*Disclaimer: This rework is for educational and security research purposes only.*
