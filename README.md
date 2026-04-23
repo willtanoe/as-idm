@@ -1,6 +1,6 @@
-# IDM Management Tool (Professional Edition)
+# ACT-Script IDM
 
-A high-precision PowerShell utility for Internet Download Manager (IDM) registry management, designed for network security researchers.
+A PowerShell utility for Internet Download Manager (IDM) registry management/
 
 ## Core Features
 - **Security-First**: Uses native PowerShell ACL providers instead of risky memory injections.
