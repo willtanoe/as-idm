@@ -1,8 +1,12 @@
 <#
-    IDM PRO TOOL - Robust Remote Version
+    IDM PRO TOOL - Ultimate Robust Version
+    Author: Will @ Telkom University
 #>
 
 $ScriptBlock = {
+    # Force TLS 1.2 for secure connection
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
     function Get-IDMRegistryPath {
         $arch = (Get-CimInstance Win32_Processor).AddressWidth
         return if ($arch -eq 64) { "Software\Classes\WOW6432Node\CLSID" } else { "Software\Classes\CLSID" }
@@ -41,7 +45,7 @@ $ScriptBlock = {
 
     Clear-Host
     Write-Host "==========================================" -ForegroundColor Magenta
-    Write-Host "    IDM PRO TOOL - STABLE REMOTE" -ForegroundColor Magenta
+    Write-Host "    IDM PRO TOOL - ULTIMATE STABLE" -ForegroundColor Magenta
     Write-Host "    Maintainer: Will (CyberSec Researcher)" -ForegroundColor Magenta
     Write-Host "==========================================" -ForegroundColor Magenta
     Write-Host "1. Freeze Trial (Stable)"
@@ -60,14 +64,16 @@ $ScriptBlock = {
 }
 
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    # We use a more direct way to call the remote script in the new window
     $Url = "https://raw.githubusercontent.com/willtanoe/as-idm/main/as-idm.ps1"
-    $Command = "iex (irm $Url)"
-    $Bytes = [System.Text.Encoding]::Unicode.GetBytes($Command)
+    
+    # This command adds a small delay and forces TLS before running irm
+    $Exec = "sleep 1; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex (irm $Url)"
+    
+    $Bytes = [System.Text.Encoding]::Unicode.GetBytes($Exec)
     $EncodedCommand = [Convert]::ToBase64String($Bytes)
     
     Write-Host "[!] Elevation required. Spawning Admin Shell..." -ForegroundColor Yellow
-    Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-EncodedCommand", $EncodedCommand -Verb RunAs
-    exit
-} else {
-    & $ScriptBlock
-}
+    
+    # Launching with -NoExit so if it fails, you can see the error instead of it just closing
+    Start-Process
