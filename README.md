@@ -11,7 +11,7 @@ A high-precision PowerShell utility for Internet Download Manager (IDM) registry
 Execute the tool directly in an **Administrative PowerShell** session:
 
 ```powershell
-irm [https://raw.githubusercontent.com/willtanoe/as-idm/main/idm_tool.ps1](https://raw.githubusercontent.com/willtanoe/as-idm/main/idm_tool.ps1) | iex
+irm https://raw.githubusercontent.com/willtanoe/as-idm/main/idm_tool.ps1| iex
 ```
 
 Methodology
